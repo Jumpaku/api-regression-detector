@@ -45,3 +45,7 @@ test:
 	./test/scripts/call/grpc-success.sh 2> /dev/null
 	./test/scripts/call/http-failure.sh 2> /dev/null
 	./test/scripts/call/http-success.sh 2> /dev/null
+
+.PHONY: cover
+cover:
+	go test -cover ./... -coverprofile=test/cover.out && go tool cover -html=test/cover.out -o test/cover.html

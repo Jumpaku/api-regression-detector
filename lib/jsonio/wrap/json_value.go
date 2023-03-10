@@ -32,7 +32,7 @@ func (k JsonKey) String() string {
 
 func (k JsonKey) Integer() (int, bool) {
 	v, err := strconv.ParseInt(string(k), 10, 64)
-	return int(v), err != nil
+	return int(v), err == nil
 }
 
 type JsonValue struct {

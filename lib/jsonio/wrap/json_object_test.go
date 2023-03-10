@@ -195,3 +195,25 @@ func TestObjectSet(t *testing.T) {
 	assert.Equal(t, obj.Get("y").MustArray().Get(6).Type, jw.JsonTypeObject)
 	assert.Equal(t, obj.Get("y").MustArray().Get(7).Type, jw.JsonTypeArray)
 }
+
+func TestObjectDel(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		v := jw.JsonObject(nil)
+		v.Del("x")
+		assert.Equal(t, v.Len(), 0)
+	})
+	t.Run("key found", func(t *testing.T) {
+		v := jw.JsonObject(map[string]*jw.JsonValue{
+			"a": jw.Number(123),
+			"b": jw.Number(-123.45),
+			"c": jw.String("abc"),
+			"d": nil,
+			"e": jw.Boolean(true),
+			"f": jw.Boolean(false),
+			"g": jw.Object(map[string]*jw.JsonValue{}),
+			"h": jw.Array(),
+		})
+		v.Del("a")
+		assert.Equal(t, v.Has("a"), false)
+	})
+}
