@@ -456,7 +456,7 @@ func TestColumnValue_AsBytes(t *testing.T) {
 		a, err := db.UnknownTypeColumnValue(&v).AsBytes()
 		assert.Equal(t, err, nil)
 		assert.Equal(t, a.Valid, true)
-		assert.NotEqual(t, a.Bytes, nil)
+		assert.IsNotNil(t, a.Bytes)
 		assert.Equal(t, string(a.Bytes), "")
 	})
 	t.Run(`pointer to []byte("abc")`, func(t *testing.T) {
