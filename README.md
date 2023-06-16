@@ -1,13 +1,6 @@
 # api-regression-detector
 
-CLI tools that can be used for the following API regression test:
-
-1. Initialize tables in database, which a target API uses.
-2. Send request to the target API.
-3. Receive response from the target API.
-4. Dump tables in database, which the target API modified.
-5. Compare expected response and actual response.
-6. Compare expected tables and actual tables.
+The api-regression-detector is a collection of command-line tools intended to be used for API regression testing. It provides functionalities to initialize tables in a database, perform API call (sending requests and receiving responses), dump modified tables in the database, and compare expected results in the JSON format.
 
 Table of contents:
 1. [Install](#install)
@@ -32,25 +25,20 @@ go install github.com/Jumpaku/api-regression-detector/cmd/db-dump@latest
 
 ### db-init
 
-```
-Regression detector db-init.
-db-init initializes tables according to JSON data.
+The `db-init` initializes tables in the database using JSON data.
 
-Usage:
-        program init <database-driver> <connection-string>
-        program -h | --help
-        program --version
-
-Options:
-        <database-driver>   Supported database driver name which is one of mysql, spanner, sqlite3, or postgres
-        <connection-string> Connection string corresponding to the database driver.
-        -h --help          Show this screen.
-        --version          Show version.
+```sh
+db-init <database-driver> <connection-string>
+db-init -h | --help
 ```
+
+* `<database-driver>`: Supported database driver name, which can be one of mysql, spanner, sqlite3, or postgres.
+* `<connection-string>`: Connection string corresponding to the database driver.
+* `-h` `--help`: Show help.
 
 #### Input
 
-To initialize tables in the database, `db-init` receives the JSON data from stdin. It is assumed that the JSON data is represented as the following type `DBInitInput`.
+To initialize tables in the database, `db-init` expects a JSON data to be provided via stdin. The JSON data should be represented as the following type `DBInitInput`:
 
 ```ts
 type DBInitInput = InitTable[];
@@ -64,7 +52,8 @@ type Row = { [columnName: string]: ColumnValue };
 type ColumnValue = boolean | string | number | null
 ```
 
-Example:
+Example JSON data:
+
 ```json
 [
     {
@@ -111,36 +100,30 @@ Example:
 
 Nothing.
 
-<span id="usage-db-dump"></span>
-
 ### db-dump
 
-```
-Regression detector db-dump.
-db-dump outputs data within tables in JSON format.
+The `db-dump` outputs data within tables in JSON format.
 
-Usage:
-        program dump <database-driver> <connection-string>
-        program -h | --help
-        program --version
-
-Options:
-        <database-driver>   Supported database driver name which is one of mysql, spanner, sqlite3, or postgres
-        <connection-string> Connection string corresponding to the database driver.
-        -h --help           Show this screen.
-        --version           Show version.
+```sh
+db-dump <database-driver> <connection-string>
+db-dump -h | --help
 ```
+
+* `<database-driver>`: Supported database driver name, which can be one of mysql, spanner, sqlite3, or postgres.
+* `<connection-string>`: Connection string corresponding to the database driver.
+* `-h` `--help`: Show help.
 
 #### Input
 
-To dump specified tables in the database, `db-dump` receives the JSON data from stdin. It is assumed that the JSON data is represented as the following type `DBDumpInput`.
+To output tables in the database, `db-dump` expects a JSON data to be provided via stdin. The JSON data should be represented as the following type `DBDumpInput`:
 
 ```ts
 /** Array of table names to be dumped */
 type DBDumpInput = string[];
 ```
 
-Example:
+Example JSON data:
+
 ```json
 [
     "example_table",
@@ -151,7 +134,7 @@ Example:
 
 #### Output
 
-`db-dump` outputs data of specified tables as JSON to stdout. The JSON data is represented as the following type `DBDumpOutput`.
+The `db-dump` tool outputs the data of rows in the specified tables to stdout as JSON data. The JSON data is represented as the following type `DBDumpOutput`:
 
 ```ts
 type DBDumpOutput = { [tableName: string]: Row[] };
@@ -193,35 +176,28 @@ Example:
 }
 ```
 
-<span id="usage-compare"></span>
-
 ### compare
 
-```
-Regression detector compare.
-compare compares two JSON files.
+`compare` compares two JSON files.
 
-Usage:
-	compare [--show-diff] [--no-superset] <expected-json> <actual-json>
-	compare -h | --help
-	compare --version
-
-Options:
-	<expected-json>    JSON file path of expected value.
-	<actual-json>      JSON file path of actual value.
-	--show-diff        Show difference. [default: false]
-	--no-superset      Disallow superset match. [default: false]
-	-h --help          Show this screen.
-	--version          Show version.
+```sh
+compare [--show-diff] [--no-superset] <expected-json> <actual-json>
+compare -h | --help
 ```
+
+* `<expected-json>`: JSON file path of the expected data.
+* `<actual-json>`: JSON file path of the actual data.
+* `--show-diff`: Show the difference (default: false).
+* `--no-superset`: Disallow superset match (default: false).
+* `-h` `--help`: Show help.
 
 #### Input
 
-Nothing.
+No specific input required.
 
 #### Output
 
-`compare` outputs comparison result of specified two JSON data to stdout. The result is represented as the following type `CompareOutput`.
+`compare` outputs the comparison result of the specified two JSON files to stdout. The result is represented as the following type `CompareOutput`:
 
 ```ts
 type CompareOutput = 
@@ -299,58 +275,44 @@ actual.json
 ]
 ```
 
-<span id="call-http"></span>
-
 ### call-http
 
-```
-Regression detector call-http.
-call-http calls HTTP API: sending JSON request and receiving JSON response.
+`call-http` calls an HTTP API by sending a JSON request and receiving a JSON response.
 
-Usage:
-        program call http <endpoint-url> <http-method>
-        program -h | --help
-        program --version
-
-Options:
-        <endpoint-url>     The URL of the HTTP endpoint which may have path parameters enclosed in '[' and ']'.
-        <http-method>      One of GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, or PATCH.
-        -h --help          Show this screen.
-        --version          Show version.
 ```
+call-http <endpoint-url> <http-method>
+call-http -h | --help
+```
+
+* `<endpoint-url>`: The URL of the HTTP endpoint, which may have path parameters enclosed in '[' and ']'.
+* `<http-method>`: One of GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, or PATCH.
+* `-h` `--help`: Show help.
 
 #### Input
 
-`call-http` sends request with JSON data given from stdin.
+`call-http` sends a API request provided via stdin in JSON format.
 
 #### Output
 
-`call-http` outputs response body as JSON data to stdout.
-
-<span id="call-grpc"></span>
+`call-http` receives the API response and outputs the response body to stdout in JSON format.
 
 ### call-grpc
 
-```
-Regression detector call-grpc.
-call-grpc calls GRPC API: sending JSON request and receiving JSON response.
+`call-grpc` calls a GRPC API by sending a JSON request and receiving a JSON response.
 
-Usage:
-        program <grpc-endpoint> <grpc-full-method>
-        program -h | --help
-        program --version
-
-Options:
-        <grpc-endpoint>    host and port joined by ':'.
-        <grpc-full-method> full method in the form 'package.name.ServiceName/MethodName'.
-        -h --help          Show this screen.
-        --version          Show version.
+```sh
+call-grpc <grpc-endpoint> <grpc-full-method>
+call-grpc -h | --help
 ```
+
+* `<grpc-endpoint>`: Host and port joined by ':'.
+* `<grpc-full-method>`: Full method in the form 'package.name.ServiceName/MethodName'.
+* `-h` `--help`: Show help screen.
 
 #### Input
 
-`call-grpc` sends request with JSON data given from stdin.
+`call-grpc` sends a API request provided via stdin in JSON format.
 
 #### Output
 
-`call-grpc` outputs response body as JSON data to stdout.
+`call-grpc` receives the API response and outputs the response body to stdout in JSON format.
