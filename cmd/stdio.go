@@ -18,5 +18,5 @@ func PrintError(stderr io.Writer, err error) {
 	if err == nil {
 		return
 	}
-	fmt.Fprintf(stderr, "Error\n%s\n%+v\n", err, err)
+	fmt.Fprintf(stderr, "Error: %v\n", err)
 }

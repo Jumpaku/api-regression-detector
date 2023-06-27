@@ -20,14 +20,14 @@ var _ cmd.RowClearer = truncateOperation{}
 func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, tableName string) error {
 	errInfo := errors.Info{tableName: tableName}
 
-	foreignKeys, err := getChecksForeignKey(ctx, tx)
+	foreignKeys, err := getForeignKeyCheck(ctx, tx)
 	if err != nil {
 		return errors.Wrap(
 			errors.DBFailure.Err(err),
 			errInfo.AppendTo("fail to get foreign_keys variable"))
 	}
 
-	if !foreignKeys {
+	if foreignKeys {
 		err := tx.Write(ctx, `PRAGMA foreign_keys = 0`, nil)
 		if err != nil {
 			return errors.Wrap(
@@ -43,7 +43,7 @@ func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, tableName st
 			errInfo.AppendTo("fail to delete all rows in table"))
 	}
 
-	if !foreignKeys {
+	if foreignKeys {
 		err := tx.Write(ctx, `PRAGMA foreign_keys = 1`, nil)
 		if err != nil {
 			return errors.Wrap(
@@ -52,17 +52,26 @@ func (o truncateOperation) ClearRows(ctx context.Context, tx db.Tx, tableName st
 		}
 	}
 
-	err = tx.Write(ctx, `DELETE FROM sqlite_sequence WHERE name = ?`, []any{tableName})
+	autoInclement, err := getAutoInclementEnable(ctx, tx)
 	if err != nil {
 		return errors.Wrap(
 			errors.DBFailure.Err(err),
-			errInfo.AppendTo("fail to reset auto inclement in table"))
+			errInfo.AppendTo("fail to check auto inclement is enabled"))
+	}
+
+	if autoInclement {
+		err = tx.Write(ctx, `DELETE FROM sqlite_sequence WHERE name = ?`, []any{tableName})
+		if err != nil {
+			return errors.Wrap(
+				errors.DBFailure.Err(err),
+				errInfo.AppendTo("fail to reset auto inclement in table"))
+		}
 	}
 
 	return nil
 }
 
-func getChecksForeignKey(ctx context.Context, tx db.Tx) (bool, error) {
+func getForeignKeyCheck(ctx context.Context, tx db.Tx) (bool, error) {
 	rows, err := tx.Read(ctx, `SELECT foreign_keys AS foreign_keys FROM pragma_foreign_keys()`, nil)
 	if err != nil {
 		return false, errors.Wrap(
@@ -83,4 +92,15 @@ func getChecksForeignKey(ctx context.Context, tx db.Tx) (bool, error) {
 	}
 
 	return foreignKeysInteger.Int64 != 0, nil
+}
+
+func getAutoInclementEnable(ctx context.Context, tx db.Tx) (bool, error) {
+	rows, err := tx.Read(ctx, `SELECT name FROM sqlite_master WHERE name='sqlite_sequence'`, nil)
+	if err != nil {
+		return false, errors.Wrap(
+			errors.DBFailure.Err(err),
+			"fail to get foreign_keys variable")
+	}
+
+	return len(rows) > 0, nil
 }

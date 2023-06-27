@@ -15,6 +15,7 @@ type NamedReader interface {
 func LoadJson[T any](file io.Reader) (T, error) {
 	decoder := json.NewDecoder(file)
 	decoder.UseNumber()
+	decoder.DisallowUnknownFields()
 
 	var jsonValue T
 	if err := decoder.Decode(&jsonValue); err != nil {
